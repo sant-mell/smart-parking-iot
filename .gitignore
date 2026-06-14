@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Secrets
+secrets.h
+.env
+# Arduino build
+build/
+*.bin
+*.elf
