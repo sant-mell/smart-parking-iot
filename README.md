@@ -29,12 +29,33 @@ channel in the middle, and the Python client that talks to it.
 
 ## How the pieces connect
 
+```mermaid
+flowchart LR
+    subgraph Sensors
+        US[HC-SR04<br/>ultrasonic]
+        DHT[DHT11<br/>temp + humidity]
+        LDR[LDR<br/>ambient light]
+    end
+    Sensors --> ESP[ESP32 firmware<br/>state machine, pricing, barrier]
+    ESP -->|MQTT publish| TS[ThingSpeak<br/>cloud channel]
+    TS -->|HTTP read| PY[Python client<br/>dashboard + commands]
+    PY -->|command field7| TS
+    TS -->|HTTP read| ESP
+    ESP --> SERVO[Servo barrier]
+    ESP --> LCD[16x2 I2C LCD]
 ```
-  Sensors  ->  ESP32 firmware  --MQTT publish-->  ThingSpeak  --HTTP read-->  Python client
- (ultrasonic,   (state machine,                    (cloud        (live dashboard +
-  DHT11, LDR)    pricing, barrier)                  channel)       entry/exit commands)
-       ^                                                                  |
-       +----------------- command field (field7) <------------------------+
+
+## Barrier state machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Free
+    Free --> EntryOpen: vehicle detected or entry command
+    EntryOpen --> Occupied: car passes / auto-close timer
+    Occupied --> ExitOpen: exit command (pay and leave)
+    ExitOpen --> Free: car passes / auto-close timer
+    EntryOpen --> Free: safety timeout
+    ExitOpen --> Occupied: safety timeout
 ```
 
 ## Layout
