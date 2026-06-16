@@ -31,18 +31,15 @@ channel in the middle, and the Python client that talks to it.
 
 ```mermaid
 flowchart LR
-    subgraph Sensors
-        US[HC-SR04<br/>ultrasonic]
-        DHT[DHT11<br/>temp + humidity]
-        LDR[LDR<br/>ambient light]
-    end
-    Sensors --> ESP[ESP32 firmware<br/>state machine, pricing, barrier]
-    ESP -->|MQTT publish| TS[ThingSpeak<br/>cloud channel]
-    TS -->|HTTP read| PY[Python client<br/>dashboard + commands]
+    US["HC-SR04 ultrasonic"] --> ESP
+    DHT["DHT11 temp and humidity"] --> ESP
+    LDR["LDR ambient light"] --> ESP
+    ESP["ESP32 firmware: state machine, pricing, barrier"] -->|MQTT publish| TS["ThingSpeak cloud channel"]
+    TS -->|HTTP read| PY["Python client: dashboard and commands"]
     PY -->|command field7| TS
     TS -->|HTTP read| ESP
-    ESP --> SERVO[Servo barrier]
-    ESP --> LCD[16x2 I2C LCD]
+    ESP --> SERVO["Servo barrier"]
+    ESP --> LCD["16x2 I2C LCD"]
 ```
 
 ## Barrier state machine
@@ -51,9 +48,9 @@ flowchart LR
 stateDiagram-v2
     [*] --> Free
     Free --> EntryOpen: vehicle detected or entry command
-    EntryOpen --> Occupied: car passes / auto-close timer
-    Occupied --> ExitOpen: exit command (pay and leave)
-    ExitOpen --> Free: car passes / auto-close timer
+    EntryOpen --> Occupied: car passes or auto-close
+    Occupied --> ExitOpen: exit command, pay and leave
+    ExitOpen --> Free: car passes or auto-close
     EntryOpen --> Free: safety timeout
     ExitOpen --> Occupied: safety timeout
 ```
